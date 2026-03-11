@@ -54,3 +54,13 @@ in the folder containing this repo
 
 To press a button close your fist \
 a fist is defined as when your fingers are below your wrist
+
+The large green dot is the hitbox for pressing buttons. it needs to be inside the button for it to press.
+
+## Potential future features
+
+- Window resizing
+- Custom button placements
+- Less cumbersome to launch
+- Remove opencv default ui at the top
+- full support for the kinect 1

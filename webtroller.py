@@ -33,24 +33,48 @@ BUTTON_MAP = {
     'SELECT': vg.XUSB_BUTTON.XUSB_GAMEPAD_BACK,
 }
 
+BUTTON_LABEL_MAP = {
+    'START': 'STR', 'SELECT': 'SEL',
+    'LB': 'LB', 'RB': 'RB', 'A': 'A', 'B': 'B', 'X': 'X', 'Y': 'Y'
+}
+
 def _press(btn):
     pad.press_button(button=BUTTON_MAP[btn]); pad.update()
+    key = BUTTON_LABEL_MAP.get(btn, btn)
+    if key in BUTTONS: BUTTONS[key]["pressed"] = True
 
 def _release(btn):
     pad.release_button(button=BUTTON_MAP[btn]); pad.update()
-
-def _stick(stick, x, y):
-    if stick == 'left':
-        pad.left_joystick_float(x_value_float=x, y_value_float=y)
-    elif stick == 'right':
-        pad.right_joystick_float(x_value_float=x, y_value_float=y)
-    pad.update()
+    key = BUTTON_LABEL_MAP.get(btn, btn)
+    if key in BUTTONS: BUTTONS[key]["pressed"] = False
 
 def _trigger(trigger, value):
     if trigger == 'left':
         pad.left_trigger(value=max(0, value))
+        BUTTONS['LT']['pressed'] = value > 0
     elif trigger == 'right':
         pad.right_trigger(value=max(0, value))
+        BUTTONS['RT']['pressed'] = value > 0
+    pad.update()
+
+def _stick(stick, x, y):
+    moving = x != 0 or y != 0
+    if stick == 'left':
+        pad.left_joystick_float(x_value_float=x, y_value_float=y)
+        for lbl in ['LSU','LSD','LSL','LSR']:
+            BUTTONS[lbl]['pressed'] = False
+        if x == 1:  BUTTONS['LSR']['pressed'] = moving
+        if x == -1: BUTTONS['LSL']['pressed'] = moving
+        if y == -1: BUTTONS['LSU']['pressed'] = moving
+        if y == 1:  BUTTONS['LSD']['pressed'] = moving
+    elif stick == 'right':
+        pad.right_joystick_float(x_value_float=x, y_value_float=y)
+        for lbl in ['RSU','RSD','RSL','RSR']:
+            BUTTONS[lbl]['pressed'] = False
+        if x == 1:  BUTTONS['RSR']['pressed'] = moving
+        if x == -1: BUTTONS['RSL']['pressed'] = moving
+        if y == -1: BUTTONS['RSU']['pressed'] = moving
+        if y == 1:  BUTTONS['RSD']['pressed'] = moving
     pad.update()
 
 def is_fist(hand_landmarks):
@@ -67,10 +91,16 @@ def draw_landmarks(frame, hand_landmarks):
         y1 = int(hand_landmarks[end].y * h)
         cv2.line(frame, (x0, y0), (x1, y1), (0, 200, 0), 2)
     for lm in hand_landmarks:
+
         cx = int(lm.x * w)
         cy = int(lm.y * h)
         cv2.circle(frame, (cx, cy), 5, (255, 255, 255), -1)
         cv2.circle(frame, (cx, cy), 5, (0, 0, 200), 1)
+        
+        
+def draw_hitbox(frame,cx,cy):
+    cv2.circle(frame, (cx, cy), 8, (0, 255, 0), -1)
+    cv2.circle(frame, (cx, cy), 8, (0, 0, 200), 1)
 
 BUTTONS = {}
 
@@ -79,13 +109,14 @@ def create_button(cx, cy, label, w=84, h=84):
     y1 = cy - h // 2
     x2 = cx + w // 2
     y2 = cy + h // 2
-    BUTTONS[label] = {"p1": (x1, y1), "p2": (x2, y2), "label": label}
+    BUTTONS[label] = {"p1": (x1, y1), "p2": (x2, y2), "label": label, "pressed": False}
 
 def draw_buttons(frame):
     font = cv2.FONT_HERSHEY_SIMPLEX
     for btn in BUTTONS.values():
         p1, p2 = btn["p1"], btn["p2"]
-        cv2.rectangle(frame, p1, p2, (0, 255, 0), 3)
+        color = (0, 100, 0) if btn["pressed"] else (0, 255, 0)
+        cv2.rectangle(frame, p1, p2, color, 3)
         cv2.putText(frame, btn["label"], (p1[0]+10, p2[1]-10), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
 def is_inside_button(cx, cy, label):
@@ -228,11 +259,14 @@ def run_hand_tracking_on_webcam():
             if result.hand_landmarks:
                 for hand_landmarks in result.hand_landmarks:
                     draw_landmarks(frame, hand_landmarks)
+                    
 
                     h, w = frame.shape[:2]
                     tip = hand_landmarks[13]
                     cx = int(tip.x * w)
                     cy = int(tip.y * h)
+
+                    draw_hitbox(frame, cx, cy)
 
                     if is_fist(hand_landmarks):
                         cv2.putText(frame, "FIST", (cx, cy - 20),
