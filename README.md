@@ -64,3 +64,5 @@ The large green dot is the hitbox for pressing buttons. it needs to be inside th
 - Less cumbersome to launch
 - Remove opencv default ui at the top
 - full support for the kinect 1
+- improved fist detection
+- true multi hand support
