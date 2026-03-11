@@ -445,13 +445,13 @@ def run_hand_tracking_on_webcam():
                         release_all(state)
 
             draw_buttons(frame)
-            cv2.imshow("Hand Tracking", frame)
+            cv2.imshow("Webtroller", frame)
             frame_index += 1
 
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
             
-            if cv2.getWindowProperty("Hand Tracking", cv2.WND_PROP_VISIBLE) < 1:
+            if cv2.getWindowProperty("Webtroller", cv2.WND_PROP_VISIBLE) < 1:
                 break
 
     cap.release()
