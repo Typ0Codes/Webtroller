@@ -1,8 +1,4 @@
-# Webtroller
-
-turn your webcam into a controller
-
-
+![Webtroller: Turn your webcam into a controller](https://github.com/Typ0Codes/Webtroller/blob/main/assets/logos/Webtroller.png?raw=true)
 
 https://github.com/user-attachments/assets/68ba2780-5169-478a-a3d3-1720019c3dd8
 
